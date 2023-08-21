@@ -14,15 +14,26 @@
 
 // Execute `rustlings hint hashmaps3` or use the `hint` watch subcommand for a hint.
 
-// I AM NOT DONE
-
 use std::collections::HashMap;
+use std::ops::Add;
 
 // A structure to store team name and its goal details.
+#[derive(Clone)]
 struct Team {
     name: String,
     goals_scored: u8,
     goals_conceded: u8,
+}
+impl Add for Team {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            name: self.name,
+            goals_scored: self.goals_scored + rhs.goals_scored,
+            goals_conceded: self.goals_conceded + rhs.goals_conceded,
+        }
+    }
 }
 
 fn build_scores_table(results: String) -> HashMap<String, Team> {
@@ -31,15 +42,32 @@ fn build_scores_table(results: String) -> HashMap<String, Team> {
 
     for r in results.lines() {
         let v: Vec<&str> = r.split(',').collect();
-        let team_1_name = v[0].to_string();
+        let team_1_name = v[0];
         let team_1_score: u8 = v[2].parse().unwrap();
-        let team_2_name = v[1].to_string();
+        let team_2_name = v[1];
         let team_2_score: u8 = v[3].parse().unwrap();
-        // TODO: Populate the scores table with details extracted from the
-        // current line. Keep in mind that goals scored by team_1
-        // will be the number of goals conceded from team_2, and similarly
-        // goals scored by team_2 will be the number of goals conceded by
-        // team_1.
+        let team1_res: Team = Team {
+            name: team_1_name.to_string(),
+            goals_scored: team_1_score,
+            goals_conceded: team_2_score,
+        };
+        let team2_res: Team = Team {
+            name: team_2_name.to_string(),
+            goals_scored: team_2_score,
+            goals_conceded: team_1_score,
+        };
+        if scores.contains_key(&team_1_name.to_string()) {
+            let old_data: &Team = scores.get(&team_1_name.to_string()).expect("WTF");
+            scores.insert(team_1_name.to_string(), old_data.clone() + team1_res);
+        } else {
+            scores.insert(team_1_name.to_string(), team1_res);
+        }
+        if scores.contains_key(&team_2_name.to_string()) {
+            let old_data: &Team = scores.get(&team_2_name.to_string()).expect("WTF");
+            scores.insert(team_2_name.to_string(), old_data.clone() + team2_res);
+        } else {
+            scores.insert(team_2_name.to_string(), team2_res);
+        }
     }
     scores
 }
